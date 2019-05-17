@@ -1,0 +1,142 @@
+<android.support.design.widget.CoordinatorLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#10639c"
+    android:id="@+id/constraint"
+    android:elevation="-1dp"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_margin="10dp"
+        android:transitionName="btn"
+        android:id="@+id/card"
+        app:cardCornerRadius="5dp"
+        app:cardElevation="40dp"
+        android:layout_height="60dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_marginLeft="70dp"
+            android:text=""
+            android:textSize="20sp"
+            android:transitionName="user"
+            android:id="@+id/userName"
+            android:textColor="#000"
+            android:layout_marginTop="10dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="70dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_marginLeft="70dp"
+            android:text=""
+            android:textSize="15sp"
+            android:transitionName="tag"
+            android:id="@+id/affirmation"
+            android:textColor="#000"
+            android:layout_marginTop="32dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="70dp" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:src="@drawable/ic_search_black_24dp"
+            android:layout_gravity="right"
+            android:layout_marginLeft="87dp"
+            android:id="@+id/search"
+            android:layout_marginTop="17dp"
+            android:layout_marginRight="35dp"
+            android:layout_height="wrap_content" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:src="@drawable/dots"
+            android:layout_gravity="right"
+            android:id="@+id/menu"
+            android:layout_marginTop="17dp"
+            android:layout_marginRight="5dp"
+            android:layout_height="wrap_content" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/useLogo"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="5dp"
+            android:src="@drawable/ic_account_circle_black_24dp"
+            android:transitionName="anim" />
+        <ProgressBar
+            android:layout_width="30dp"
+            android:id="@+id/prog"
+            android:layout_marginTop="15dp"
+            android:layout_marginLeft="70dp"
+            android:layout_height="30dp" />
+    </android.support.v7.widget.CardView>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:alpha="0"
+        android:minHeight="?attr/actionBarSize"
+        />
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginTop="90dp"
+        android:alpha="1"
+        android:id="@+id/recyc"
+        android:layout_height="match_parent"/>
+    <ImageView
+        android:layout_width="200dp"
+        android:id="@+id/noP"
+      android:layout_gravity="center"
+        android:src="@drawable/undraw_empty_xct9"
+        android:layout_height="200dp" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="200dp"
+        android:textColor="#000"
+        android:id="@+id/noT"
+        android:textSize="25dp"
+        android:fontFamily="@font/pacifico"
+        android:text="No meets yet !"
+        android:layout_height="wrap_content" />
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="160dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginRight="30dp"
+        android:visibility="invisible"
+        app:backgroundTint="@color/colorFAB1"
+        app:fabSize="normal"
+        app:elevation="6dp"
+        app:pressedTranslationZ="12dp"
+        android:src="@drawable/ic_add_black_24dp" />
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="90dp"
+        app:fabSize="normal"
+        android:layout_gravity="bottom|end"
+        android:layout_marginRight="30dp"
+        android:visibility="invisible"
+        app:elevation="6dp"
+        app:backgroundTint="@color/colorFAB2"
+        app:pressedTranslationZ="12dp"
+        android:src="@drawable/qr" />
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/ScanR"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:transitionName="fab"
+        app:elevation="6dp"
+        app:backgroundTint="#0073bd"
+        app:pressedTranslationZ="12dp"
+        app:fabSize="normal"
+        android:layout_margin="30dp"
+        android:src="@drawable/ic_add_black_24dp" />
+
+</android.support.design.widget.CoordinatorLayout>

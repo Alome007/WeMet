@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+
+    <ImageView
+        android:layout_width="190dp"
+        android:layout_height="170dp"
+        android:layout_above="@+id/textView3"
+android:src="@drawable/undraw_mobile_testing_reah"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+      />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_above="@+id/textView2"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="16dp"
+        android:layout_marginStart="18dp"
+        android:fontFamily="@font/pacifico"
+        android:text="Meet new people"
+        android:textColor="#380039"
+        android:textSize="@dimen/slide_title"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="18dp" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="106dp"
+        android:fontFamily="@font/product"
+        android:paddingLeft="@dimen/desc_padding"
+        android:paddingRight="@dimen/desc_padding"
+        android:text="Connect and Share Data fast each time you meet new people"
+        android:textAlignment="center"
+        android:textColor="#cf4f8b"
+        android:textSize="@dimen/slide_desc"
+        android:layout_alignParentLeft="true" />
+
+
+</RelativeLayout>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:orientation="vertical"
+
+    android:background="@drawable/modal"
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="300dp">
+<EditText
+    android:layout_width="match_parent"
+    android:layout_margin="15dp"
+    android:id="@+id/titleAdd"
+    android:hint="@string/title"
+    android:textColorHint="#000"
+    android:layout_height="wrap_content" />
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_margin="15dp"
+        android:id="@+id/valueadd"
+        android:hint="@string/value"
+        android:textColorHint="#000"
+        android:layout_height="wrap_content" />
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="5dp" />
+    <ImageButton
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="end"
+        android:layout_marginEnd="25dp"
+        android:layout_marginTop="-10dp"
+        android:id="@+id/add"
+        android:src="@drawable/ic_keyboard_arrow_right_black_24dp"
+        android:background="@drawable/button_bg"
+        android:layout_marginRight="25dp"
+        android:contentDescription="@string/app_name" />
+</LinearLayout>

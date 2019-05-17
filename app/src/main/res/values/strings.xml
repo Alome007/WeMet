@@ -1,0 +1,91 @@
+<resources>
+    <string name="app_name">WeMet</string>
+    <string name="clicked_item"> %1$s</string>
+    <string name="long_clicked_item"> %1$s</string>
+    <string-array name="locations">
+        <item>Select Area</item>
+        <item>Alapere</item>
+        <item>Ajah</item>
+        <item>Victoria Island</item>
+        <item>Ikorodu</item>
+        <item>Surulere</item>
+        <item>Ikeja</item>
+        <item>Mary Land</item>
+        <item>Mowe</item>
+        <item>Isolo</item>
+        <item>Epe</item>
+        <item>Igando</item>
+    </string-array>
+    <string-array name="residentCat">
+        <item>Select category</item>
+        <item>A room</item>
+        <item>A room and Palour</item>
+        <item>Two Bedroom Flat</item>
+        <item> Three Bedroom flat</item>
+        <item>Duplex</item>
+    </string-array>
+    <string name="open"></string>
+    <string name="close"></string>
+    <string name="rent">Rent Out</string>
+    <string name="what">Choose</string>
+    <string name="lease">Lease Out</string>
+    <string name="sale">Sell Out</string>
+    <string name="property_name">Property Name</string>
+    <string name="address">Address</string>
+    <string name="price">Price</string>
+    <string name="enter_a_short_description">Enter a Short Description</string>
+    <string name="attach_pictures">Attach Pictures</string>
+    <string name="upload">Post</string>
+    <string name="no_bookings_yet">No Bookings yet</string>
+    <string name="house_name">House Name :</string>
+    <string name="address2">Address:</string>
+    <string name="price2">Price</string>
+    <string name="type">Type:</string>
+    <string name="jan_20">Jan 20</string>
+    <string name="dnd">Edit</string>
+    <string name="search">Delete</string>
+    <string name="my_account">My Account</string>
+    <string name="my_clients">My Clients</string>
+    <string name="settings">Settings</string>
+    <string name="you_cant5">you can\'t select more than 5 images</string>
+    <string name="_08105719149">08105719149</string>
+    <string name="link">Share on Play</string>
+    <string name="start_typing">Start typing...</string>
+    <string name="no_result">No Results match your filter</string>
+    <string name="select_country">Select Country</string>
+    <string name="search_hint">search</string>
+    <string name="urbler101">Urbler101</string>
+    <string name="phone">08100000000</string>
+    <string name="LocalGov">Alapere</string>
+    <string name="logout">logout</string>
+    <string name="mydate"><![CDATA[package com.urbler;  import android.annotation.SuppressLint; import android.app.AlertDialog; import android.content.DialogInterface; import android.graphics.Bitmap; import android.os.Bundle; import android.os.Handler; import android.support.annotation.Nullable; import android.support.design.widget.FloatingActionButton; import android.support.v7.app.ActionBar; import android.support.v7.app.AppCompatActivity; import android.support.v7.widget.DefaultItemAnimator; import android.support.v7.widget.LinearLayoutManager; import android.support.v7.widget.RecyclerView; import android.support.v7.widget.Toolbar; import android.util.Log; import android.view.LayoutInflater; import android.view.Menu; import android.view.View; import android.widget.ImageView; import android.widget.Toast;  import com.github.florent37.hollyviewpager.HollyViewPager; import com.github.florent37.hollyviewpager.HollyViewPagerBus; import com.google.firebase.auth.FirebaseAuth; import com.google.firebase.auth.FirebaseUser; import com.google.firebase.database.DataSnapshot; import com.google.firebase.database.DatabaseError; import com.google.firebase.database.DatabaseReference; import com.google.firebase.database.FirebaseDatabase; import com.google.firebase.database.ValueEventListener; import com.google.zxing.WriterException;  import java.util.ArrayList; import java.util.List;  import androidmads.library.qrgenearator.QRGContents; import androidmads.library.qrgenearator.QRGEncoder; import androidmads.library.qrgenearator.QRGSaver;  /**  * Created by Alome on 3/19/2019.  * 2019 Urbler  */  public class WeMet extends AppCompatActivity {     private List<weMeetPojo> movieList = new ArrayList<>();     private myPosts mAdapter;     View view;     String userId0;     private FirebaseUser user0 = FirebaseAuth.getInstance().getCurrentUser();     HollyViewPager hollyViewPager;     RecyclerView recyclerView;    QRGEncoder qrgEncoder;     FloatingActionButton fab;     @Override     protected void onCreate(@Nullable final Bundle savedInstanceState) {         isUserRegistered();         super.onCreate(savedInstanceState);         setContentView(R.layout.we_meet); //todo remove the comment from the next line....        // userId0 = user0.getUid();         recyclerView=findViewById(R.id.recyc);         fab=findViewById(R.id.scanR);         fab.setOnClickListener(new View.OnClickListener() {             @Override             public void onClick(final View view) {                 scanCodeUp();             }         });         Toolbar toolbar = (Toolbar) findViewById(R.id.tool);         setSupportActionBar(toolbar);         ActionBar actionbar = getSupportActionBar();         if (actionbar != null) {             actionbar.setTitle(\"WeMet\");         }         actionbar.setDisplayHomeAsUpEnabled(true);         mAdapter=new myPosts(movieList);         FloatingActionButton fab=findViewById(R.id.fab);         final RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);         recyclerView.setLayoutManager(mLayoutManager);         recyclerView.setItemAnimator(new DefaultItemAnimator()); //        hollyViewPager=findViewById(R.id.hollyViewPager);       //  HollyViewPagerBus.registerRecyclerView(this, recyclerView);         recyclerView.setLayoutManager(new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false));         HollyViewPagerBus.registerRecyclerView(this, recyclerView);         weMeetPojo weMeetPojo=new weMeetPojo(\"Daniel\",\"google.com\",\"Jan 20\",\"snapped Pic\",\"dkdkd\",\"fdudu\");         movieList.add(weMeetPojo);         weMeetPojo = new weMeetPojo(\"Alome Daniel\", \"google.com\", \"Jan 20\", \"snapped Pic\", \"dkdkd\", \"fdudu\");         movieList.add(weMeetPojo);         recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, recyclerView, new RecyclerItemClickListener.OnItemClickListener() {             @Override             public void onItemClick(final View view, final int position) {                 String u1 = ((weMeetPojo) movieList.get(position)).getFriendsName();                 Toast.makeText(WeMet.this,u1 ,Toast.LENGTH_LONG).show();             }              @Override             public void onLongItemClick(final View view, final int position) {              }         }));      }      private void scanCodeUp() {         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(this);         @SuppressLint(\"InflateParams\") final View mView = layoutInflaterAndroid.inflate(R.layout.my_qr_code, null);         final AlertDialog.Builder alertDialogBuilderUserInput = new AlertDialog.Builder(this);         alertDialogBuilderUserInput.setView(mView);          ImageView qrImage;         qrImage=mView.findViewById(R.id.qr);         new Handler().postDelayed(new Runnable() {             @Override             public void run() {                  qrgEncoder = new QRGEncoder(\"my name is Alome Daniel and i am from Benue State...\", null, QRGContents.Type.TEXT, 900);             }         }, 5000);           try {             // Getting QR-Code as Bitmap             Bitmap bitmap = qrgEncoder.encodeAsBitmap();             // Setting Bitmap to ImageView             qrImage.setImageBitmap(bitmap);              QRGSaver.save(\"storage/\",\"UrblerAuth\" , bitmap, QRGContents.ImageType.IMAGE_JPEG);             Toast.makeText(WeMet.this,\"Image Saved\",Toast.LENGTH_LONG).show();         } catch (WriterException e) {             Log.v(\"AlomeQr\", e.toString());          }         alertDialogBuilderUserInput                 .setCancelable(true)                 .setPositiveButton(\"Close\", new DialogInterface.OnClickListener() {                     @Override                     public void onClick(DialogInterface dialogInterface, int i) {                      }                 });           final AlertDialog alertDialogAndroid = alertDialogBuilderUserInput.create();         alertDialogAndroid.show();         alertDialogAndroid.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {             @Override             public void onClick(View view) {                 alertDialogAndroid.dismiss();             }         });     }      @Override         public boolean onCreateOptionsMenu(Menu menu) {             // Inflate the menu; this adds items to the action bar if it is present.             getMenuInflater().inflate(R.menu.action, menu);             return true;     }     @Override     public void onBackPressed() {        // Toast.makeText(WeMet.this, \"Closing\",Toast.LENGTH_LONG).show();         finish();         super.onBackPressed();     }     public void isUserRegistered(){         View mView = LayoutInflater.from(this).inflate(R.layout.qr_code_view, null);         final AlertDialog.Builder p=new AlertDialog.Builder(this);         p.setView(mView);         final AlertDialog alertDialogAndroid =p.create();         //todo   alertDialogAndroid.getWindow().getAttributes().windowAnimations = R.style.DialogTheme;         alertDialogAndroid.show();         alertDialogAndroid.setCancelable(true);         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(); //        Todo the \"userId0 should be the the id of the user...\"         DatabaseReference userNameRef = rootRef.child(\"urbler\").child(\"userID0\");         ValueEventListener eventListener = new ValueEventListener() {             @Override             public void onDataChange(DataSnapshot dataSnapshot) {                 if(!dataSnapshot.exists()) {                     alertDialogAndroid.dismiss();                     Toast.makeText(WeMet.this,\"User not in existence\",Toast.LENGTH_LONG).show();                 }                 else {                     alertDialogAndroid.dismiss();                     recyclerView.setAdapter(mAdapter);                     Toast.makeText(WeMet.this,\"User already in existence\",Toast.LENGTH_LONG).show();                     loadUserData loadUserData=new loadUserData();                     loadUserData.loadAll();                 }             }              @Override             public void onCancelled(DatabaseError databaseError) {                 Log.d(\"Urbler:dbError\", databaseError.getMessage()); //Don\'t ignore errors!             }         };         userNameRef.addListenerForSingleValueEvent(eventListener);     }     public String myData(){         String data=\"\";         return data;     } }]]></string>
+    <string name="sign_up">Sign Up</string>
+    <string name="ceo">Alome Daniel</string>
+    <string name="living_hope">Nigeria</string>
+    <string name="todo">TODO</string>
+    <string name="test1">Alome Meet With Daniel</string>
+    <string name="value">Value</string>
+    <string name="title">Title</string>
+    <string name="will_help_you_with_promote_your_songs_with_just_few_clicks">Helollllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll</string>
+    <string-array name="commonStrings">
+        <item>select</item>
+        <item> Residential</item>
+        <item>Office</item>
+        <item>Land</item>
+        <item>Shop</item>
+    </string-array>
+    <string-array name="country">
+        <item>Choose</item>
+        <item>Alapere</item>
+        <item>Ajah</item>
+        <item>Victoria Island</item>
+        <item>Ikorodu</item>
+        <item>Surulere</item>
+        <item>Ikeja</item>
+        <item>Mary Land</item>
+        <item>Mowe</item>
+        <item>Isolo</item>
+        <item>Epe</item>
+        <item>Igando</item>
+    </string-array>
+</resources>

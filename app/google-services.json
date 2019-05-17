@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "592404684198",
+    "firebase_url": "https://wemet101.firebaseio.com",
+    "project_id": "wemet101",
+    "storage_bucket": "wemet101.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:592404684198:android:2a94be2d8f219a10",
+        "android_client_info": {
+          "package_name": "com.urbler.wemet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "592404684198-6rcnl1mhtc8f411o30nvnjdn7i73r16f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATWjWcyDaK6uhElQgSTi2FoNC53519gSQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "592404684198-6rcnl1mhtc8f411o30nvnjdn7i73r16f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
