@@ -105,14 +105,14 @@ imageView.setOnClickListener(new View.OnClickListener() {
         return new MyViewHolder(itemView);
     }
 
+    @SuppressLint("SetTextI18n")
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void onBindViewHolder(@NonNull final MyViewHolder holder, int position) {
         final weMeetPojo myP = (weMeetPojo) myPos.get(position);
         Picasso.get().load(myP.getFriendsPicUrl()).into(holder.snapedP);
         holder.snapedP.setTransitionName("thumbnailTransition");
-        holder.friendsName.setText(myP.getFriendsName());
+        holder.friendsName.setText("You Met With"+" "+myP.getFriendsName());
         holder.date.setText(myP.getDate());
-
 //        holder.c.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {

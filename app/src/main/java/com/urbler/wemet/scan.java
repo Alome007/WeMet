@@ -3,9 +3,11 @@ package com.urbler.wemet;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,6 +31,7 @@ public class scan extends AppCompatActivity implements ZXingScannerView.ResultHa
      boolean exist;
     private String url;
     ProgressDialog pd;
+    private boolean is;
 
     @Override
     public void onCreate(Bundle state) {
@@ -56,23 +59,22 @@ public class scan extends AppCompatActivity implements ZXingScannerView.ResultHa
         // Do something with the result here
         // Log.v("tag", rawResult.getText()); // Prints scan results
         // Log.v("tag", rawResult.getBarcodeFormat().toString()); // Prints the scan format (qrcode, pdf417 etc.)
-
-//        MainActivity.tvresult.setText(rawResult.getText());
+       // Toast.makeText(scan.this,rawResult.toString(),Toast.LENGTH_LONG).show();
+        getId(rawResult.getText());
         //verifying your Id
         DatabaseReference num= FirebaseDatabase.getInstance().getReference().child("Users").child(getId(rawResult.getText())).child("profile").child("scanProgress");
         num.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 pd.setMessage("Verifying... ");
-                String s=dataSnapshot.toString();
+                pd.show();
+                String s=dataSnapshot.getValue().toString();
                 if (s.equals(getCode(rawResult.getText()))){
-    exist=true;
-}
+                    SharedPreferences sh=getSharedPreferences("true",MODE_PRIVATE);
+                    SharedPreferences.Editor editor=sh.edit();
+                    editor.putBoolean("ok",true);
 
-else
-{
-    exist=false;
-}
+        }
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -80,18 +82,18 @@ else
                 Log.w("Alomeeeee", "loadPost:onCancelled", databaseError.toException());
                 // ...
             }
-
         });
-        if(exist){
-            num.removeValue();
+        if(exist()){
+          //  num.removeValue();
             FirebaseUser user= FirebaseAuth.getInstance().getCurrentUser();
             String userId= null;
             if (user != null) {
                 userId = user.getUid();
             }
             pd.dismiss();
+            requestAccess();
             addMeToyourPost(userId,getId(rawResult.getText()));
-           addyouTomyPost(userId,getId(rawResult.getText()));
+            addyouTomyPost(userId,getId(rawResult.getText()));
            // so you can read the Data;
             //add to your post add to my post !.... my id and your Id.. then==> Back Pressed !...
             onBackPressed();
@@ -101,8 +103,28 @@ else{
             scanCodeUpPri();
             Log.d("Not Existing !", "handleResult: Not In Existence");
 }
-        // If you would like to resume scanning, call this method below:
-        //mScannerView.resumeCameraPreview(this);
+        mScannerView.resumeCameraPreview(this);
+    }
+
+    private void requestAccess() {
+
+    }
+
+    private boolean exist() {
+        final Handler handler = new Handler();
+        final int delay = 50; //milliseconds
+
+        handler.postDelayed(new Runnable(){
+            public void run(){
+
+                SharedPreferences sharedPreference=getSharedPreferences("true", Context.MODE_PRIVATE);
+                Boolean val=sharedPreference.getBoolean("ok",false);
+                if (val)
+                    is=true;
+                handler.postDelayed(this, delay);
+            }
+        }, delay);
+        return is;
     }
 
 
@@ -112,15 +134,15 @@ else{
         String firstFourChars = "";     //substring containing first 4 characters
         firstFourChars = input.substring(0, 28);
         System.out.println(firstFourChars);
+      //  Toast.makeText(scan.this,word,Toast.LENGTH_LONG).show();
         return firstFourChars;
-
 
     }
     public static String getCode(String word){
         // this should be get Access code... Create another method for stripping acess codes
         String input = word;     //input string
         String firstFourChars = "";     //substring containing first 4 characters
-        firstFourChars = input.substring(28, 38);
+        firstFourChars = input.substring(28, 32);
         System.out.println(firstFourChars);
         return firstFourChars;
     }
@@ -159,10 +181,6 @@ else{
 
 
     }
-
-
-
-
     private void addMeToyourPost(final String s,final  String o) {
         //link to my account...
         //todo s is my id
@@ -173,10 +191,22 @@ else{
                 SharedPreferences sharedPreferences=getSharedPreferences("yurl",MODE_PRIVATE);
                 String youUrl=sharedPreferences.getString("urr",null);
                 weMeetPojo weMeetPojo=dataSnapshot.getValue(weMeetPojo.class);
-                String yourName=weMeetPojo.getFriendsName();
-                String location=weMeetPojo.getLocation();
-                String date=weMeetPojo.getDate();
-                String typ=weMeetPojo.getType();
+                String yourName= null;
+                if (weMeetPojo != null) {
+                    yourName = weMeetPojo.getFriendsName();
+                }
+                String location= null;
+                if (weMeetPojo != null) {
+                    location = weMeetPojo.getLocation();
+                }
+                String date= null;
+                if (weMeetPojo != null) {
+                    date = weMeetPojo.getDate();
+                }
+                String typ= null;
+                if (weMeetPojo != null) {
+                    typ = weMeetPojo.getType();
+                }
                 weMeetPojo add=new weMeetPojo(yourName,youUrl,location,date, typ, s);
                 //link to mine...
                 DatabaseReference me= FirebaseDatabase.getInstance().getReference().child("Users").child(s).child("profile").child("posts").push();
@@ -186,7 +216,6 @@ else{
                         Log.d("Added101","Added me to your posts Successfully");
                     }
                 });
-
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -194,13 +223,9 @@ else{
                 Log.w("Alomeeeee", "loadPost:onCancelled", databaseError.toException());
                 // ...
             }
-
         });
 
     }
-
-
-
     private String getUrl(String id) {
         SharedPreferences sharedPreferences=getSharedPreferences("yurl",MODE_PRIVATE);
         final SharedPreferences.Editor edito=sharedPreferences.edit();
@@ -249,4 +274,14 @@ else{
         });
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
+    }
+    public int count(String number){
+        int result;
+        result=number.length();
+        return result;
+    }
 }

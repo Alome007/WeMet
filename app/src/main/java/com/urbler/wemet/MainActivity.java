@@ -2,6 +2,7 @@ package com.urbler.wemet;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.ActivityOptions;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -10,10 +11,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -54,9 +59,9 @@ import com.google.zxing.WriterException;
 import com.squareup.picasso.Picasso;
 import com.vistrav.ask.Ask;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 import androidmads.library.qrgenearator.QRGContents;
@@ -67,37 +72,30 @@ import androidmads.library.qrgenearator.QRGEncoder;
  * 2019 Urbler
  */
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener,DragLayout.GotoDetailListener{
-    private static final int PICK =1 ;
+public  class MainActivity extends AppCompatActivity implements View.OnClickListener,DragLayout.GotoDetailListener{
+   // private static final int PICK =1 ;
     private List<weMeetPojo> movieList = new ArrayList<>();
-    private myPosts mAdapter;
     View view;
-  String userId0;
-    private final int SELECT_PHOTO = 1;
+    String userId0;
+    final int SELECT_PHOTO = 1;
 
-    DatabaseReference userData;
+    //DatabaseReference userData;
     ProgressBar pro;
-    String youid;
+   // String youid;
     private FirebaseUser user0 = FirebaseAuth.getInstance().getCurrentUser();
     RecyclerView recyclerView;
-    QRGEncoder qrgEncoder;
     StorageReference storageRef, imageRef;
-    UploadTask uploadTask;
-    FloatingActionButton fab0;
    CoordinatorLayout constraintLayout;
-    int delay;
     String data;
     private Boolean isFabOpen = false;
     FloatingActionButton fab,fab1,fab2;
     Animation fab_open,fab_close,rotate_forward,rotate_backward;
     ImageView profile,dots,search;
-    private String random;
+  //  private String random;
     ImageView noP;
     TextView username,country,noT;
-    private int Rnumber;
     private Uri uriImage;
-    ProgressDialog progressDialog;
-    String  url;
+    location appLocationService;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -105,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
            case R.id.change:
                Intent intent=new Intent(MainActivity.this,addInfo.class);
                startActivity(intent);
-       };
+       }
         return super.onOptionsItemSelected(item);
     }
 
@@ -113,6 +111,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.we_meet);
+        appLocationService = new location(
+              MainActivity.this);
         SharedPreferences sharedPreferences=getSharedPreferences("show",MODE_PRIVATE);
         boolean first=sharedPreferences.getBoolean("run",true);
         if (first){
@@ -121,7 +121,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //        netWork netWork=new netWork();
 //        netWork.check(this);
-
         pro=findViewById(R.id.prog);
         username=findViewById(R.id.userName);
         constraintLayout=findViewById(R.id.constraint);
@@ -150,10 +149,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         FirebaseStorage storage = FirebaseStorage.getInstance();
         storageRef = storage.getReference();
         fillData(username,country,profile);
-        checkFab();
-
-        String requiredPermission = "android.permission.WRITE_EXTERNAL_STORAGE";
-        final int checkVal = this.checkCallingOrSelfPermission(requiredPermission);
+        changeQrCodePub();
+        changeQrCodePri();
+       // String requiredPermission = "android.permission.WRITE_EXTERNAL_STORAGE";
+       // final int checkVal = this.checkCallingOrSelfPermission(requiredPermission);
         //Set the custom view
         Ask.on(this)
                 .id(2) // in case you are invoking multiple time Ask from same activity or fragment
@@ -162,26 +161,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .withRationales("We need your permission !",
                         "In order to save file you will need to grant storage permission","Camera Permission is needed !") //optional
                 .go();
+       always();
+        //todo profile picture changer...
+//        profile.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                    if (MainActivity.this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//                            == PackageManager.PERMISSION_GRANTED){
+//                        ChooseImage();
+//                    }
+//                    else
+//                    {
+//                        Toast.makeText(MainActivity.this, "Please grant the Camera Permission", Toast.LENGTH_SHORT).show();
+//                        Ask.on(MainActivity.this)
+//                                .id(2) // in case you are invoking multiple time Ask from same activity or fragment
+//                                .forPermissions(android.Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.CAMERA
+//                                        , android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//                                .withRationales("We need your permission !",
+//                                        "In order to save file you will need to grant storage permission","Camera Permission is needed !") //optional
+//                                .go();
+//                    }
+//                }
+//            }
+//        });
         profile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (MainActivity.this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                            == PackageManager.PERMISSION_GRANTED){
-                        ChooseImage();
-                    }
-                    else
-                    {
-                        Toast.makeText(MainActivity.this, "Please grant the Camera Permission", Toast.LENGTH_SHORT).show();
-                        Ask.on(MainActivity.this)
-                                .id(2) // in case you are invoking multiple time Ask from same activity or fragment
-                                .forPermissions(android.Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.CAMERA
-                                        , android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                .withRationales("We need your permission !",
-                                        "In order to save file you will need to grant storage permission","Camera Permission is needed !") //optional
-                                .go();
-                    }
-                }
+                myProfileView();
             }
         });
 
@@ -202,19 +209,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        assert actionbar != null;
 //        actionbar.setDisplayHomeAsUpEnabled(true);
         //   Toast.makeText(MainActivity.this, myData(),Toast.LENGTH_LONG).show();
-        mAdapter=new myPosts(movieList,this);
+
+        myPosts mAdapter = new myPosts(movieList, this);
         final RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false));
-        readmyPost();
-
+       // todo uncomment readmyPost();
+//        weMeetPojo weMeetPojo=new weMeetPojo("Alome Daniel","snjbdede","2nd May","Yaba","private","aasnkdkned");
+//        movieList.add(weMeetPojo);
+//        weMeetPojo=new weMeetPojo("Alome Daniel","snjbdede","2nd May","Yaba","private","aasnkdkned");
+//        movieList.add(weMeetPojo);weMeetPojo=new weMeetPojo("Alome Daniel","snjbdede","2nd May","Yaba","private","aasnkdkned");
+//        movieList.add(weMeetPojo);weMeetPojo=new weMeetPojo("Alome Daniel","snjbdede","2nd May","Yaba","private","aasnkdkned");
+//        movieList.add(weMeetPojo);weMeetPojo=new weMeetPojo("Alome Daniel","snjbdede","2nd May","Yaba","private","aasnkdkned");
+//        movieList.add(weMeetPojo);
         recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(final View view, final int position) {
-                String id = ((weMeetPojo) movieList.get(position)).getId();
-                String ty = ((weMeetPojo) movieList.get(position)).getType();
+                String id = movieList.get(position).getId();
+                String ty = movieList.get(position).getType();
                 SharedPreferences sharedPreferences=getSharedPreferences("yourid",MODE_PRIVATE);
                 SharedPreferences.Editor editor=sharedPreferences.edit();
                 editor.putString("id",id);
@@ -223,87 +237,167 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 SharedPreferences.Editor editor2=sharedPreferences2.edit();
                 editor2.putString("val",ty);
                 editor2.apply();
+                startActivity(new Intent(MainActivity.this,Detail.class));
             }
-
             @Override
             public void onLongItemClick(final View view, final int position) {
 
             }
         }));
-
-
     }
-    private void readmyPost() {
-        final DatabaseReference me= FirebaseDatabase.getInstance().getReference().child("Users").child(userId0).child("profile").child("posts");
-      me.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                   weMeetPojo value = ds.getValue(weMeetPojo.class);
-                    String title = value.getFriendsName();
-                    String location = value.getLocation();
-                    String date=value.getDate();
-                    String profile=value.getFriendsPicUrl();
-                    weMeetPojo meetPojo = new weMeetPojo();
-                    meetPojo.setFriendsName("You Met with "+" "+title+" " +"0n");
-                    meetPojo.setFriendsPicUrl(profile);
-                    meetPojo.setDate(date+" "+"at"+userId0+location);
-                    movieList.add(meetPojo);
-                    int po=mAdapter.getItemCount();
-                    if (po>0){
-                        constraintLayout.setBackgroundColor(getResources().getColor(R.color.cons2));
-                        noP.setVisibility(View.GONE);
-                        noT.setVisibility(View.GONE);
+public void loc(){
+    Location location = appLocationService
+            .getLocation(LocationManager.GPS_PROVIDER);
 
+    //you can hard-code the lat & long if you have issues with getting it
+    //remove the below if-condition and use the following couple of lines
+    //double latitude = 37.422005;
+    //double longitude = -122.084095
+
+    if (location != null) {
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        LocationAddress locationAddress = new LocationAddress();
+        locationAddress.getAddressFromLocation(latitude, longitude,
+                getApplicationContext(), new GeocoderHandler());
+    } else {
+        showSettingsAlert();
+    }
+
+}
+
+    private class GeocoderHandler extends Handler {
+        @Override
+        public void handleMessage(Message message) {
+            String locationAddress;
+            switch (message.what) {
+                case 1:
+                    Bundle bundle = message.getData();
+                    locationAddress = bundle.getString("address");
+                    break;
+                default:
+                    locationAddress = null;
+            }
+            DatabaseReference users=FirebaseDatabase.getInstance().getReference();
+            users.child("Users").child(userId0).child("profile").child("account").child("country").setValue(locationAddress);
+        }
+    }
+    private void showSettingsAlert() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(
+               MainActivity.this);
+        alertDialog.setTitle("SETTINGS");
+        alertDialog.setMessage("Enable Location Provider! Go to settings menu?");
+        alertDialog.setPositiveButton("Settings",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(
+                                Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                     MainActivity.this.startActivity(intent);
                     }
-                }
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w("Alomeeeee", "loadPost:onCancelled", databaseError.toException());
-                // ...
-            }
-
-        });
+                });
+        alertDialog.setNegativeButton("Cancel",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+        alertDialog.show();
     }
+
+    void myProfileView(){
+    ActivityOptions options = null;
+    // start the new activity
+    Intent intent=new Intent(MainActivity.this,myProfile.class);
+
+    startActivity(intent);
+        overridePendingTransition(R.anim.slide_up,  R.anim.no_animation);
+}
+//todo remove comment
+//    private void readmyPost() {
+//        final DatabaseReference me= FirebaseDatabase.getInstance().getReference().child("Users").child(userId0).child("profile").child("posts");
+//      me.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+//                   weMeetPojo value = ds.getValue(weMeetPojo.class);
+//                    String title = value.getFriendsName();
+//                    String location = value.getLocation();
+//                    String date=value.getDate();
+//                    String profile=value.getFriendsPicUrl();
+//                    weMeetPojo meetPojo = new weMeetPojo();
+//                    meetPojo.setFriendsName(title);
+//                    meetPojo.setFriendsPicUrl(profile);
+//                    meetPojo.setDate(date+" "+"at"+userId0+location);
+//                    movieList.add(meetPojo);
+//                    int po=mAdapter.getItemCount();
+//                    if (po>0){
+//                        constraintLayout.setBackgroundColor(getResources().getColor(R.color.cons2));
+//                        noP.setVisibility(View.GONE);
+//                        noT.setVisibility(View.GONE);
+//                    }
+//                }
+//            }
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//                // Getting Post failed, log a message
+//                Log.w("Alomeeeee", "loadPost:onCancelled", databaseError.toException());
+//                // ...
+//            }
+//
+//        });
+//    }
 
     private void scanCodeUpPri() {
         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(this);
         @SuppressLint("InflateParams") final View mView = layoutInflaterAndroid.inflate(R.layout.my_qr_code, null);
         final AlertDialog.Builder alertDialogBuilderUserInput = new AlertDialog.Builder(this);
         alertDialogBuilderUserInput.setView(mView);
+
+        final ImageView qrImage;
+        qrImage=mView.findViewById(R.id.qr);
+        final ProgressBar progressBar=mView.findViewById(R.id.proSc);
+        final TextView code1=mView.findViewById(R.id.code);
         fab.startAnimation(rotate_backward);
         fab1.startAnimation(fab_close);
         fab2.startAnimation(fab_close);
         fab1.setClickable(false);
         fab2.setClickable(false);
         isFabOpen = false;
-        final Handler handler = new Handler();
-        delay  = 10000; //milliseconds
-        handler.postDelayed(new Runnable(){
-            public void run(){
-                ImageView qrImage;
-                qrImage=mView.findViewById(R.id.qr);
-                ProgressBar progressBar=mView.findViewById(R.id.proSc);
-                progressBar.setVisibility(View.GONE);
-//                Toast.makeText(MainActivity.this,myDataPri(),Toast.LENGTH_LONG).show();
-                try {
-                    QRGEncoder qrgEncoder = new QRGEncoder(myDataPri(), null, QRGContents.Type.TEXT, 1000);
-                    // Getting QR-Code as Bitmap
-                    Bitmap bitmap = qrgEncoder.encodeAsBitmap();
-                    // Setting Bitmap to ImageView
+        final DatabaseReference num= FirebaseDatabase.getInstance().getReference().child("Users").child(userId0).child("profile").child("scanProgress").child("Private");
+       num.addValueEventListener(new ValueEventListener() {
+           @Override
+           public void onDataChange(DataSnapshot dataSnapshot) {
+               if (!dataSnapshot.toString().isEmpty()) {
+                   //if not working change to  String code100 = dataSnapshot.getValue().toString();
+                  String code100 = String.valueOf(dataSnapshot.getValue());
+                   progressBar.setVisibility(View.GONE);
+                   try {
+                       num.keepSynced(false);
+                       // Toast.makeText(MainActivity.this,code,Toast.LENGTH_LONG).show();
+                       String code0=userId0+code100;
+                      // Toast.makeText(MainActivity.this,code0.length(),Toast.LENGTH_LONG).show();
+                       code1.setText(getCode(code100));
+                       code1.setVisibility(View.VISIBLE);
+                     //  Toast.makeText(MainActivity.this,"This is the code ooooo"+ " "+ code100,Toast.LENGTH_LONG).show();
+                       QRGEncoder qrgEncoder = new QRGEncoder(code0, null, QRGContents.Type.TEXT, 1000);
+                       // Getting QR-Code as Bitmap
+                       Bitmap bitmap = qrgEncoder.encodeAsBitmap();
+                       // Setting Bitmap to ImageView
 
-                    qrImage.setImageBitmap(bitmap);
-                    //QRGSaver.save("storage/","UrblerAuth" , bitmap, QRGContents.ImageType.IMAGE_JPEG);
+                       qrImage.setImageBitmap(bitmap);
+                       //QRGSaver.save("storage/","UrblerAuth" , bitmap, QRGContents.ImageType.IMAGE_JPEG);
 
-                } catch (WriterException e) {
-                    Log.v("AlomeQr", e.toString());
+                   } catch (WriterException e) {
+                       Log.v("AlomeQr", e.toString());
+                   }
+               }
+           }
 
-                }
-                handler.postDelayed(this, delay);
-            }
-        }, delay);
+           @Override
+           public void onCancelled(DatabaseError databaseError) {
+
+           }
+       });
         alertDialogBuilderUserInput
                 .setCancelable(true)
                 .setPositiveButton("Close", new DialogInterface.OnClickListener() {
@@ -312,8 +406,80 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     }
                 });
+        final AlertDialog alertDialogAndroid = alertDialogBuilderUserInput.create();
+        alertDialogAndroid.show();
+        alertDialogAndroid.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialogAndroid.dismiss();
+            }
+        });
+    }
 
 
+
+
+
+
+
+    private void scanCodeUpPub() {
+        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(this);
+        @SuppressLint("InflateParams") final View mView = layoutInflaterAndroid.inflate(R.layout.my_qr_code, null);
+        final AlertDialog.Builder alertDialogBuilderUserInput = new AlertDialog.Builder(this);
+        alertDialogBuilderUserInput.setView(mView);
+        final ImageView qrImage;
+        qrImage=mView.findViewById(R.id.qr);
+        final ProgressBar progressBar=mView.findViewById(R.id.proSc);
+        final TextView code1=mView.findViewById(R.id.code);
+        fab.startAnimation(rotate_backward);
+        fab1.startAnimation(fab_close);
+        fab2.startAnimation(fab_close);
+        fab1.setClickable(false);
+        fab2.setClickable(false);
+        isFabOpen = false;
+        final DatabaseReference num= FirebaseDatabase.getInstance().getReference().child("Users").child(userId0).child("profile").child("scanProgress").child("Public");
+        num.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.toString().isEmpty()) {
+                    //todo change back to  String code100 = dataSnapshot.getValue().toString();
+                    String code100 = String.valueOf(dataSnapshot.getValue());
+                    progressBar.setVisibility(View.GONE);
+                    try {
+                        num.keepSynced(false);
+                        // Toast.makeText(MainActivity.this,code,Toast.LENGTH_LONG).show();
+                        String code0=userId0+code100;
+                        // Toast.makeText(MainActivity.this,code0.length(),Toast.LENGTH_LONG).show();
+                        code1.setText(getCode(code100));
+                        code1.setVisibility(View.VISIBLE);
+                        //  Toast.makeText(MainActivity.this,"This is the code ooooo"+ " "+ code100,Toast.LENGTH_LONG).show();
+                        QRGEncoder qrgEncoder = new QRGEncoder(code0, null, QRGContents.Type.TEXT, 1000);
+                        // Getting QR-Code as Bitmap
+                        Bitmap bitmap = qrgEncoder.encodeAsBitmap();
+                        // Setting Bitmap to ImageView
+
+                        qrImage.setImageBitmap(bitmap);
+                        //QRGSaver.save("storage/","UrblerAuth" , bitmap, QRGContents.ImageType.IMAGE_JPEG);
+
+                    } catch (WriterException e) {
+                        Log.v("AlomeQr", e.toString());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        alertDialogBuilderUserInput
+                .setCancelable(true)
+                .setPositiveButton("Close", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
         final AlertDialog alertDialogAndroid = alertDialogBuilderUserInput.create();
         alertDialogAndroid.show();
         alertDialogAndroid.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
@@ -336,58 +502,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         finish();
         super.onBackPressed();
     }
-//    public void isUserRegistered(){
-//        View mView = LayoutInflater.from(this).inflate(R.layout.loader, null);
-//        final AlertDialog.Builder p=new AlertDialog.Builder(this);
-//        p.setView(mView);
-//        final AlertDialog alertDialogAndroid =p.create();
-//        //todo   alertDialogAndroid.getWindow().getAttributes().windowAnimations = R.style.DialogTheme;
-//        alertDialogAndroid.show();
-//        alertDialogAndroid.setCancelable(true);
-//        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-////        Todo the "userId0 should be the the id of the user..."
-//        DatabaseReference userNameRef = rootRef.child("users").child("userID0").child("profile");
-//        ValueEventListener eventListener = new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                if(!dataSnapshot.exists()) {
-//                    alertDialogAndroid.dismiss();
-//                    Toast.makeText(MainActivity.this,"User not in existence",Toast.LENGTH_LONG).show();
-//                }
-//                else {
-//                    alertDialogAndroid.dismiss();
-//                    //todo Undo the next line from being a comment...
-////                    recyclerView.setAdapter(mAdapter);
-//                    Toast.makeText(MainActivity.this,"User already in existence",Toast.LENGTH_LONG).show();
-////                    loadUserData loadUserData=new loadUserData();
-////                    loadUserData.loadAll();
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//                Log.d("Urbler:dbError", databaseError.getMessage()); //Don't ignore errors!
-//            }
-//        };
-//        userNameRef.addListenerForSingleValueEvent(eventListener);
-
-    public String myDataPri(){
-        //todo userId should be id of user...
-        final Handler handler = new Handler();
-        final int delay = 10000;
-        handler.postDelayed(new Runnable(){
-            public void run(){
-                DatabaseReference rf, num;
-                num=FirebaseDatabase.getInstance().getReference().child("Users").child(userId0).child("profile").child("scanProgress");
-                Random random=new Random();
-                Rnumber = Integer.parseInt(String.format("%04d", random.nextInt(10000)));
-                data=userId0+Rnumber;
-                num.setValue(Rnumber);
-                handler.postDelayed(this, delay);
-            }
-        }, delay);
-        return data;
-    }
 
     @Override
     public void onClick(final View view) {
@@ -396,19 +510,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.ScanR:
                 animateFAB();
 
-
                 break;
             case R.id.fab1:
                 animateFAB();
-                scanCodeUpPri();
-
-                Log.d("Alome", "Fab 1");
-                break;
-            case R.id.fab2:
-                animateFAB();
-                SharedPreferences sharedPreferences=getSharedPreferences("type",MODE_PRIVATE);
-                final SharedPreferences.Editor editor=sharedPreferences.edit();
-                CharSequence colors[] = new CharSequence[]{"Scan Public code", "Scan private code"};
+             //   SharedPreferences sharedPreferences=getSharedPreferences("type",MODE_PRIVATE);
+              //  final SharedPreferences.Editor editor=sharedPreferences.edit();
+                CharSequence colors[] = new CharSequence[]{"Show Public DC", "Show Private DC"};
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Option");
                 builder.setItems(colors, new DialogInterface.OnClickListener() {
@@ -416,8 +523,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (which == 0) {
-                           editor.putString("val","public");
-                           editor.apply();
+                            //   editor.putString("val","public");
+                            // editor.apply();
+
+                            scanCodeUpPub();
+
+                        }
+                            else
+                            {
+                                scanCodeUpPri();
+
+                            }
+
+                    }
+                });
+                builder.show();
+                break;
+            case R.id.fab2:
+                animateFAB();
+                SharedPreferences sharedPreferences=getSharedPreferences("type",MODE_PRIVATE);
+                final SharedPreferences.Editor editor=sharedPreferences.edit();
+                CharSequence colors1[] = new CharSequence[]{"Scan DC", "Enter DC"};
+                AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+                builder1.setTitle("Option");
+                builder1.setItems(colors1, new DialogInterface.OnClickListener() {
+                    @RequiresApi(api = Build.VERSION_CODES.M)
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == 0) {
+                            //todo
+//                           editor.putString("val","public");
+//                           editor.apply();
                             if (MainActivity.this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                     == PackageManager.PERMISSION_GRANTED){
                                 ReadDatapri();
@@ -430,9 +566,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         } else {
                             if (MainActivity.this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                     == PackageManager.PERMISSION_GRANTED){
-                                ReadDatapri();
-                                editor.putString("val","private");
-                                editor.apply();
+                               enterCode();
+                                //todo
+//                                editor.putString("val","private");
+//                                editor.apply();
                             }
                             else
                             {
@@ -441,11 +578,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     }
                 });
-                builder.show();
+                builder1.show();
                 break;
 
         }
     }
+
+    private void enterCode() {
+        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(this);
+        @SuppressLint("InflateParams") final View mView = layoutInflaterAndroid.inflate(R.layout.enter, null);
+        final AlertDialog.Builder alertDialogBuilderUserInput = new AlertDialog.Builder(this);
+        alertDialogBuilderUserInput.setView(mView);
+        fab.startAnimation(rotate_backward);
+        fab1.startAnimation(fab_close);
+        fab2.startAnimation(fab_close);
+        fab1.setClickable(false);
+        fab2.setClickable(false);
+        isFabOpen = false;
+
+        alertDialogBuilderUserInput
+                .setCancelable(true)
+                .setPositiveButton("Verify", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+        final AlertDialog alertDialogAndroid = alertDialogBuilderUserInput.create();
+        alertDialogAndroid.show();
+        alertDialogAndroid.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialogAndroid.dismiss();
+            }
+        });
+    }
+
     public void animateFAB(){
         if(isFabOpen){
 
@@ -471,97 +639,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startActivity(new Intent(MainActivity.this, scan.class));
 
     }
-
-//    @Override
-//    public void onQRCodeRead(final String text, final PointF[] points) {
-//        Toast.makeText(MainActivity.this,text,Toast.LENGTH_LONG).show();
-//        final DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("USers").child(yourId()).child("profile").child("private").child(text);
-//        mDatabaseReference.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//               //todo save shared Data...
-//
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//                // Getting Post failed, log a message
-//                Log.w("Alomeeeee", "loadPost:onCancelled", databaseError.toException());
-//                // ...
-//            }
-//
-//        });
-//        addyouTomyPost(yourId());
-//        addMeToyourPost(userId0);
-//    }
-
-////    private void addyouTomyPost(final String s) {
-//        //link to oyur account...
-//        DatabaseReference you= FirebaseDatabase.getInstance().getReference().child("Users").child(s).child("profile").child("account");
-//       you.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                weMeetPojo weMeetPojo=dataSnapshot.getValue(weMeetPojo.class);
-//                String yourName=weMeetPojo.getFriendsName();
-//                String youUrl=weMeetPojo.getFriendsPicUrl();
-//                String location=weMeetPojo.getLocation();
-//                String date=weMeetPojo.getDate();
-//                weMeetPojo add=new weMeetPojo(yourName,youUrl,location,date,s);
-//                //link to mine...
-//                DatabaseReference me= FirebaseDatabase.getInstance().getReference().child("Users").child(userId0).child("profile").child("posts").push();
-//                me.setValue(add).addOnSuccessListener(new OnSuccessListener<Void>() {
-//                    @Override
-//                    public void onSuccess(Void aVoid) {
-//                      Log.d("Added101","Added you to my posts Successfully");
-//                    }
-//                });
-//
-//
-//            }
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//                // Getting Post failed, log a message
-//                Log.w("Alomeeeee", "loadPost:onCancelled", databaseError.toException());
-//                // ...
-//            }
-//
-//        });
-//
-//
-//    }
-//    private void addMeToyourPost(final String s) {
-//        //link to my account...
-//        DatabaseReference you= FirebaseDatabase.getInstance().getReference().child("Users").child(s).child("profile").child("account");
-//        you.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                weMeetPojo weMeetPojo=dataSnapshot.getValue(weMeetPojo.class);
-//                String yourName=weMeetPojo.getFriendsName();
-//                String youUrl=weMeetPojo.getFriendsPicUrl();
-//                String location=weMeetPojo.getLocation();
-//                String date=weMeetPojo.getDate();
-//                weMeetPojo add=new weMeetPojo(yourName,youUrl,location,date,s);
-//                //link to mine...
-//                DatabaseReference me= FirebaseDatabase.getInstance().getReference().child("Users").child(s).child("profile").child("posts").push();
-//                me.setValue(add).addOnSuccessListener(new OnSuccessListener<Void>() {
-//                    @Override
-//                    public void onSuccess(Void aVoid) {
-//                        Log.d("Added101","Added me to your posts Successfully");
-//                    }
-//                });
-//
-//
-//            }
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//                // Getting Post failed, log a message
-//                Log.w("Alomeeeee", "loadPost:onCancelled", databaseError.toException());
-//                // ...
-//            }
-//
-//        });
-//
-//    }
 public  void fillData(final TextView t1, final TextView t2, final ImageView imageView){
     //link to my account...
     DatabaseReference you= FirebaseDatabase.getInstance().getReference().child("Users").child(userId0).child("profile").child("account");
@@ -622,32 +699,32 @@ public  void fillData(final TextView t1, final TextView t2, final ImageView imag
 
 
     }
-String yourId(){
-
-   DatabaseReference getUrId = FirebaseDatabase.getInstance().getReference().child("Users").child("scanners").child(random);
-   getUrId.addValueEventListener(new ValueEventListener() {
-        @Override
-        public void onDataChange(DataSnapshot dataSnapshot) {
-
-                //reads all data on the private node....
-                random=UUID.randomUUID().toString();
-                priData value = dataSnapshot.getValue(priData.class);
-            if (value != null) {
-                youid= value.getMyId();
-            }
-        }
-
-        @Override
-        public void onCancelled(DatabaseError databaseError) {
-            // Getting Post failed, log a message
-            Log.w("Alomeeeee", "loadPost:onCancelled", databaseError.toException());
-            // ...
-        }
-
-    });
-    return youid;
-
-}
+//String yourId(){
+//
+//   DatabaseReference getUrId = FirebaseDatabase.getInstance().getReference().child("Users").child("scanners").child(random);
+//   getUrId.addValueEventListener(new ValueEventListener() {
+//        @Override
+//        public void onDataChange(DataSnapshot dataSnapshot) {
+//
+//                //reads all data on the private node....
+//                random=UUID.randomUUID().toString();
+//                priData value = dataSnapshot.getValue(priData.class);
+//            if (value != null) {
+//                youid= value.getMyId();
+//            }
+//        }
+//
+//        @Override
+//        public void onCancelled(DatabaseError databaseError) {
+//            // Getting Post failed, log a message
+//            Log.w("Alomeeeee", "loadPost:onCancelled", databaseError.toException());
+//            // ...
+//        }
+//
+//    });
+//    return youid;
+//
+//}
 
     @Override
     public void gotoDetail() {
@@ -695,11 +772,11 @@ startActivity(new Intent(MainActivity.this,addInfo.class));
         }, 5000);
     }
 
-    public void ChooseImage() {
-        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-        photoPickerIntent.setType("image/*");
-        startActivityForResult(photoPickerIntent, SELECT_PHOTO);
-    }
+//    public void ChooseImage() {
+//        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+//        photoPickerIntent.setType("image/*");
+//        startActivityForResult(photoPickerIntent, SELECT_PHOTO);
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
@@ -715,6 +792,18 @@ startActivity(new Intent(MainActivity.this,addInfo.class));
 
     }
 
+    private void always() {
+        final Handler handler = new Handler();
+        final int delay = 1000; //milliseconds
+
+        handler.postDelayed(new Runnable(){
+            public void run(){
+                loc();
+                handler.postDelayed(this, delay);
+            }
+        }, delay);
+
+    }
     public void UploadFoto() {
         final ProgressDialog progressD=new ProgressDialog(MainActivity.this);
         progressD.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -761,7 +850,7 @@ startActivity(new Intent(MainActivity.this,addInfo.class));
                });
        final AlertDialog alertDialogAndroid = alertDialogBuilderUserInput.create();
        alertDialogAndroid.setMessage("Welcome on Board !, it nice to have you.." +
-               " "+ "Do you want to set up your space now ?");
+               " "+ "Do you want to set up your Public Data and Private data now ?");
        alertDialogAndroid.show();
        alertDialogAndroid.getButton(DialogInterface.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
            @Override
@@ -786,30 +875,58 @@ startActivity(new Intent(MainActivity.this,addInfo.class));
        });
 
    }
-    private void scanCode() {
-        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(this);
-        @SuppressLint("InflateParams") final View mView = layoutInflaterAndroid.inflate(R.layout.not, null);
-        final AlertDialog.Builder alertDialogBuilderUserInput = new AlertDialog.Builder(this);
-        alertDialogBuilderUserInput.setView(mView);
 
-        alertDialogBuilderUserInput
-                .setCancelable(true)
-                .setPositiveButton("Close", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+public void changeQrCodePub(){
+    Log.d("ID ooooooooo", "changeQrCode: "+userId0);
+    final Handler handler = new Handler();
+    final int delay = 10000;
+    handler.postDelayed(new Runnable(){
+        @SuppressLint("DefaultLocale")
+        public void run()
+        {
+            SecureRandom random1 = new SecureRandom();
+            int num1 = random1.nextInt(10000);
+            @SuppressLint("DefaultLocale") String formatted = String.format("%04d",    num1);
+            DatabaseReference num;
+            num=FirebaseDatabase.getInstance().getReference().child("Users").child(userId0).child("profile").child("scanProgress").child("Public");
+           // Random random=new Random();
+            num.keepSynced(false);
+          //  int Rnumber = Integer.parseInt(String.format("%04d", random.nextInt(700700703)));
+            data=userId0+formatted;
+            num.setValue(data);
+            handler.postDelayed(this, delay);
+            // Toast.makeText(MainActivity.this,"The string is "+" "+formatted,Toast.LENGTH_LONG).show();
 
-                    }
-                });
-
-
-        final AlertDialog alertDialogAndroid = alertDialogBuilderUserInput.create();
-        alertDialogAndroid.show();
-        alertDialogAndroid.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                alertDialogAndroid.dismiss();
-            }
-        });
+        }
+    }, delay);
+}
+    public static String getCode(String word){
+        // this should be get Access code... Create another method for stripping acess codes
+        String firstFourChars;     //substring containing first 4 characters
+        firstFourChars = word.substring(28, 32);
+        return firstFourChars;
     }
+    private void changeQrCodePri() {
+        final Handler handler = new Handler();
+        final int delay = 10000;
+        handler.postDelayed(new Runnable(){
+            @SuppressLint("DefaultLocale")
+            public void run()
+            {
+                SecureRandom random1 = new SecureRandom();
+                int num1 = random1.nextInt(10000);
+                @SuppressLint("DefaultLocale") String formatted = String.format("%04d", num1);
+                DatabaseReference num;
+                num=FirebaseDatabase.getInstance().getReference().child("Users").child(userId0).child("profile").child("scanProgress").child("Private");
+              //  Random random=new Random();
+                num.keepSynced(false);
+             // int  Rnumber = Integer.parseInt(String.format("%04d", random.nextInt(700700703)));
+                data=userId0+formatted;
+                num.setValue(data);
+                handler.postDelayed(this, delay);
 
+                // Toast.makeText(MainActivity.this,"The string is "+" "+formatted,Toast.LENGTH_LONG).show();
+            }
+        }, delay);
+    }
 }

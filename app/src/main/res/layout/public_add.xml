@@ -29,7 +29,7 @@
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
         android:layout_marginTop="28dp"
-        android:text="Add your first profile !"
+        android:text="Add your first public Data!"
         android:textColor="#000"
         android:textSize="17dp" />
     <android.support.design.widget.FloatingActionButton

@@ -12,11 +12,6 @@ public class addInfo extends AppCompatActivity {
     TabLayout tabLayout;
     ViewPager viewPager;
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        finish();
-    }
 
     @SuppressLint("NewApi")
     @Override
@@ -24,8 +19,8 @@ public class addInfo extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_info);
 
-        tabLayout=(TabLayout)findViewById(R.id.tabLayout);
-        viewPager=(ViewPager)findViewById(R.id.viewPager);
+        tabLayout=findViewById(R.id.tabLayout);
+        viewPager=findViewById(R.id.viewPager);
         Toolbar toolbar=findViewById(R.id.tool0);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -59,6 +54,11 @@ public class addInfo extends AppCompatActivity {
 
             }
         });
-
     }
-}  
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+       this.finish();
+    }
+
+}

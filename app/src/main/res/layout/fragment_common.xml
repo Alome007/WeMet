@@ -54,8 +54,6 @@
                         android:text="NO. 7911847"
                         android:textColor="#333"
                         android:textSize="15sp" />
-
-
                 </LinearLayout>
 
                 <View
@@ -141,12 +139,10 @@
                     android:visibility="gone"
                     android:textColor="#000"
                     android:textSize="15sp" />
-
                 <ImageView
                     android:id="@+id/address2"
                     android:layout_width="22dp"
                     android:layout_height="22dp"
-
                     android:layout_alignParentTop="true"
                     android:layout_marginLeft="13dp"
                     android:layout_marginStart="13dp"

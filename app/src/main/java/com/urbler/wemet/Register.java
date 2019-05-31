@@ -1,13 +1,20 @@
 package com.urbler.wemet;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityOptionsCompat;
@@ -46,7 +53,7 @@ import java.util.UUID;
  * WeMet
  */
 public class Register extends AppCompatActivity {
-    EditText name,country,state;
+    EditText name,country;
     ImageButton register;
     Button con;
     LinearLayout linearLayout;
@@ -63,11 +70,14 @@ public class Register extends AppCompatActivity {
     FirebaseUser user0;
     private Uri uriImage;
     private String url;
+    private location appLocationService;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.reg);
+        appLocationService=new location(Register.this);
+        loc();
         user0 = FirebaseAuth.getInstance().getCurrentUser();
          progressDialog=new ProgressDialog(this);
         progressDialog.setMessage("Please Wait...");
@@ -75,7 +85,7 @@ public class Register extends AppCompatActivity {
         progressDialog.show();
         name=findViewById(R.id.name);
         country=findViewById(R.id.email);
-        state=findViewById(R.id.password);
+//      //  state=findViewById(R.id.password);
         register=findViewById(R.id.signup);
         checkBox=findViewById(R.id.checkbox);
         linearLayout=findViewById(R.id.linearlayout);
@@ -84,6 +94,8 @@ public class Register extends AppCompatActivity {
         rl=findViewById(R.id.rec);
         im=findViewById(R.id.profilePic);
         user=user0.getUid();
+        country.setEnabled(false);
+
      //Toast.makeText(Register.this,"ALome Damiel",Toast.LENGTH_LONG).show();
         mRef= FirebaseDatabase.getInstance().getReference();
         users=mRef.child("Users").child(user).child("profile").child("account");
@@ -129,15 +141,14 @@ public class Register extends AppCompatActivity {
         boolean canMove=false;
         String na=name.getText().toString();
         String count=country.getText().toString();
-        String sta=state.getText().toString();
+       // String sta=state.getText().toString();
         if (na.isEmpty())
             name.setError("Name Required");
         else
         if (count.isEmpty())
             country.setError("Country Required");
-        else
-        if (sta.isEmpty())
-            state.setError("State Required");
+
+
         else
         if(!checkBox.isChecked())
             Toast.makeText(Register.this,"Please Agree to our Terms",Toast.LENGTH_LONG).show();
@@ -156,7 +167,7 @@ public class Register extends AppCompatActivity {
         }
         finish();
         //todo change the registerPojo value to the edit text values...
-        registerPojo registerPojo=new registerPojo(name.getText().toString(),country.getText().toString(),state.getText().toString(),"http://wemet.urbler.com/img/qrcode.png");
+        registerPojo registerPojo=new registerPojo(name.getText().toString(),country.getText().toString(),"","http://wemet.urbler.com/img/qrcode.png");
 
         users.setValue(registerPojo).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
@@ -165,10 +176,71 @@ public class Register extends AppCompatActivity {
                 SharedPreferences.Editor editor = getSharedPreferences("Reg", MODE_PRIVATE).edit();
                 editor.putBoolean("firstStart", false);
                 editor.apply();
-
             }
         });
         //todo still want to animate here....
+    }
+
+    public void loc(){
+        Location location = appLocationService
+                .getLocation(LocationManager.GPS_PROVIDER);
+
+        //you can hard-code the lat & long if you have issues with getting it
+        //remove the below if-condition and use the following couple of lines
+        //double latitude = 37.422005;
+        //double longitude = -122.084095
+
+        if (location != null) {
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            LocationAddress locationAddress = new LocationAddress();
+            locationAddress.getAddressFromLocation(latitude, longitude,
+                    getApplicationContext(), new Register.GeocoderHandler());
+        } else {
+            showSettingsAlert();
+        }
+
+    }
+
+
+        private void showSettingsAlert() {
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(
+                    Register.this);
+            alertDialog.setTitle("SETTINGS");
+            alertDialog.setMessage("Enable Location Provider! Go to settings menu?");
+            alertDialog.setPositiveButton("Settings",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(
+                                    Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                           Register.this.startActivity(intent);
+                        }
+                    });
+            alertDialog.setNegativeButton("Cancel",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+            alertDialog.show();
+
+    }
+
+    private class GeocoderHandler extends Handler {
+        @Override
+        public void handleMessage(Message message) {
+            String locationAddress;
+            switch (message.what) {
+                case 1:
+                    Bundle bundle = message.getData();
+                    locationAddress = bundle.getString("address");
+                    break;
+                default:
+                    locationAddress = null;
+            }
+            country.setEnabled(false);
+          country.setText(locationAddress);
+        }
     }
     public void isRegistered(){
 //        final String userName=user0.getUid(); todo

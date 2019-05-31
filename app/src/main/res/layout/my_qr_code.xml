@@ -15,4 +15,13 @@
         android:id="@+id/proSc"
         android:layout_marginTop="-140dp"
         android:layout_height="60dp" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:text="@string/_08105719149"
+        android:visibility="gone"
+        android:id="@+id/code"
+        android:layout_marginTop="10dp"
+        android:textColor="#000"
+        android:textSize="25dp"
+        android:layout_height="wrap_content" />
 </LinearLayout>
